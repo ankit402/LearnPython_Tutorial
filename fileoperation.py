@@ -5,8 +5,6 @@ with open('sample.txt', 'r') as file:
     for line in file:
         print(line.strip())  #strip  to avoid  the spaces in between the lines
 
-
 import os
-
 currect_directory = os.getcwd()
 print(currect_directory)
