@@ -102,24 +102,22 @@ f1 = mycomposingfunction(sum, decrement)
 f2= mycomposingfunction(power, decrement)
 print(f1(5)) # 5+2 -1 -->6
 print(f2(5)) # 5**2 - 1 -->24
-
 print(power(5))
-
 #"Use the functools.partial function to create a new function that multiplies its input by 2.
 # Test the new function with different inputs.\n"
-
 from functools import partial
 # Normal multiplication function
 def multiply(a, b):
     return a * b
-
 result = partial(multiply, 2)
-
 print(result(2))
 
 '''''Let me know if you'd like to:
 Partially apply more than one argument
 Use this in a map/filter context
 Use partial with class methods or lambdas'''
+
+
+
 
 
