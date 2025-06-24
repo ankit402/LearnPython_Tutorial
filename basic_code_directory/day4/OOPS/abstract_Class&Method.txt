@@ -1,0 +1,33 @@
+🔷 What is an Abstract Class?
+'''An abstract class is like a blueprint for other classes.
+You cannot create an object from it directly.
+It’s used to make sure that child classes follow a certain structure.'''
+
+🔷 What is an Abstract Method?
+An abstract method is a placeholder for a method.
+It says: “Every child class must write this method!”
+
+🛠️ How to Create Abstract Class & Method:
+
+from abc import ABC, abstractmethod
+class Animal(ABC):  # Abstract class
+    @abstractmethod
+    def make_sound(self):  # Abstract method
+        pass
+
+✅ Subclass Example:
+class Dog(Animal):
+    def make_sound(self):
+        print("Woof!")
+
+❌ This will give error:
+a = Animal()  # ❌ Cannot create object of abstract class
+
+✅ This works:
+d = Dog()
+d.make_sound()  # Output: Woof!
+
+💡 Simple Analogy:
+Abstract class = Recipe book (you can’t eat it)
+Abstract method = Recipe steps you must follow
+Child class = Real cook who follows the recipe and makes food
