@@ -40,7 +40,16 @@ import pandas as pd
 df = pd.read_csv('myresult.csv')
 #print(df.head(10))
 #condition
-# filtered_df = df[df['status'] == 'Failed']
-# filtered_df= df[df['user'].str.contains('javed') or [df['status'] == 'Failed']]
+#filtered_df = df[df['status'] == 'Failed']
+#filtered_df= df[df['user'].str.contains('javed') or [df['status'] == 'Failed']]
 filtered_df = df[(df['user'].str.contains('javed', case=False, na=False)) & (df['status'] == 'Success')]
 print(filtered_df)
+
+#Accessing data from dataframe
+#print(df['user'].head())
+
+#print(df.iloc[0])
+
+
+
+
