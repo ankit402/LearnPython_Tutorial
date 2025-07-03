@@ -116,3 +116,13 @@ arr = np.array([1, 0, 3])
 newarr = arr.astype(bool)
 print(newarr)
 print(newarr.dtype)
+
+arr= np.array([1, "test", 3, True])
+print(type(arr[1]))
+print(type(arr[0]))
+print(type(arr[3]))
+
+
+arr_np = np.array([1,2,3])
+reshape = arr_np.reshape(1,3)
+print(reshape)

@@ -2,7 +2,7 @@
 from numpy.ma.extras import ndenumerate
 
 print("*********Numpy intro*************")
-print("Numpy is working with working with arrays.functions for working in domain of linear algebra, fourier transform, and matrices."
+print("Numpy is  working with arrays & functions for working in domain of linear algebra, fourier transform, and matrices."
       "aims to provide an array object that is up to 50x faster than traditional Python lists.The array object in NumPy is called ndarray, "
       "it provides a lot of supporting functions that make working with ndarray very easy.")
 import numpy as np
@@ -251,3 +251,8 @@ arr= np.array([40,56,12,54,1,6])
 filterarray = arr%2 == 0
 newarr = arr[filterarray]
 print("My filtered array list 23" , newarr)
+
+#np logical
+arr= np.array([40,56,12,54,1,6])
+arr= [(arr>5) & (arr>1)]
+print("logical" , arr)
