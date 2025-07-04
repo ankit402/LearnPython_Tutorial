@@ -1,0 +1,77 @@
+Explanation of the Car and Tesla Classes with Inheritance
+🧱 Class Hierarchy & Inheritance
+This example demonstrates inheritance in Python’s object-oriented programming (OOP):
+
+Base class: Car — provides a common structure and interface.
+
+Derived class: Tesla — inherits from Car and extends functionality.
+
+🔹 Base Class: Car
+python
+Copy
+Edit
+class Car:
+    def __init__(self, type):
+        self.type = type  # Store engine type, e.g., "electric" or "petrol"
+
+    def EngineType(self):
+        pass  # Placeholder method to be overridden by subclasses
+The constructor __init__ initializes the attribute type.
+
+EngineType() is a placeholder method (does nothing) meant to be overridden by subclasses.
+
+🔹 Derived Class: Tesla
+python
+Copy
+Edit
+class Tesla(Car):
+    def __init__(self, type, isdrivingauto):
+        super().__init__(type)  # Initialize inherited attribute from Car
+        self.isdrivingauto = isdrivingauto  # New attribute for autopilot status
+
+    def is_driving(self):
+        print(f"Tesla is {'driving automatically' if self.isdrivingauto else 'being driven manually'}.")
+
+    def EngineType(self):
+        if self.type.lower() == "electric":
+            print("Tesla engine type is electric.")
+        else:
+            print("Tesla engine type is petrol.")
+Inheritance: Tesla extends Car, inheriting its attributes and methods.
+
+The constructor calls super().__init__(type) to reuse Car's initialization.
+
+Adds a new boolean attribute isdrivingauto indicating autopilot status.
+
+Implements is_driving(), which prints if the car is in autopilot or manual mode.
+
+Overrides EngineType() to provide actual behavior based on the engine type:
+
+Prints "Tesla engine type is electric." if type is "electric".
+
+Otherwise, defaults to "Tesla engine type is petrol."
+
+🔸 Object Creation & Method Calls
+python
+Copy
+Edit
+c1 = Tesla("electric", True)
+c1.EngineType()   # Output: Tesla engine type is electric.
+c1.is_driving()   # Output: Tesla is driving automatically.
+Creates a Tesla object c1 with:
+
+type = "electric"
+
+isdrivingauto = True (autopilot enabled)
+
+Calls overridden EngineType() method to print engine info.
+
+Calls is_driving() to print driving mode based on autopilot status.
+
+✅ Summary Table
+Concept	Explanation
+Inheritance	Tesla inherits from Car
+Constructor	Initializes attributes type and isdrivingauto
+Method Override	Tesla overrides the placeholder EngineType() from Car
+Conditional Logic	Prints messages based on the engine type and driving mode
+Object Creation	Creates Tesla object and uses its methods
