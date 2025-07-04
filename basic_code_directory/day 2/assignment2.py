@@ -19,7 +19,7 @@ print(lst[:-5])
 print(lst[5:16])
 
 #   "Create a new list containing the squares of the first 10 positive integers using a list comprehension. Print the new list.\n"
-
+#[expression for item in iterable if condition]
 squarlist = [x**2 for x in range(1,11) if(x!=0)]
 print(squarlist)
 

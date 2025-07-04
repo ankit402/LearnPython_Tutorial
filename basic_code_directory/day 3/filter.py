@@ -109,10 +109,6 @@ print(sum_list(numbers))
 list =[]
 list.append([1,2,3,4,5])
 
-
-
-
-
 lst = [1, 1, 1, 1, 1]
 setdata = set(lst)
 unique_list = []
