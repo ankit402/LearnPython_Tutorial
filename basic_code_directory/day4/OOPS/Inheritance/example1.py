@@ -24,9 +24,7 @@ class Dog(Animal):
     def speak(self):
         print(f'Dog: {self._name} is woof')
 
-
 d1= Dog('lucy', 'xyz')
 d1.speak()
-
 
 '''Base_class 1 & Base_class 2 --> property inherit by Derive_class'''

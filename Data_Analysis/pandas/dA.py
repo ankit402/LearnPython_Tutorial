@@ -17,7 +17,6 @@ import pandas as pd
 df = pd.read_excel('Book1.xlsx')
 #print("Available columns:", df.columns)
 
-
 df['Lines of Source code'] = pd.to_numeric(df['Lines of Source code'])
 df['Lines of Executable code'] = pd.to_numeric(df['Lines of Executable code'])
 print("Total Lines of Source code:", df['Lines of Source code'].sum())

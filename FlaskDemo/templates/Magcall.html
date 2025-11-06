@@ -1,0 +1,213 @@
+<button onclick="connectToRpiMG()">Send to RPI MG</button>
+<button onclick="connectToRpiChip()">Send to RPI Chip</button>
+<button onclick="callclamp()">Send to Clamp</button>
+
+<pre id="resultLog" style="border:1px solid #ccc; padding:10px; max-height:300px; overflow:auto;"></pre>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function logMessage(message) {
+  const logArea = document.getElementById("resultLog");
+  if (logArea) {
+    const timestamp = new Date().toLocaleTimeString();
+    logArea.textContent += `[${timestamp}] ${message}\n`;
+    logArea.scrollTop = logArea.scrollHeight;
+  } else {
+    console.log(message);
+  }
+}
+
+function connectToRpiMG() {
+  const ip = "192.168.0.20";
+  const wsMG = new WebSocket(`ws://${ip}:8080`);
+
+  wsMG.onopen = () => {
+    logMessage(`✅ Connected to RPI MG (${ip})`);
+    Swal.fire("Connected", `Connected to Raspberry Pi MG (${ip})`, "success");
+
+    const commands = [
+      { Item: "Carrier 1", Message: "Move In" },
+      { Item: "Carrier 1", Message: "Move Out" },
+      { Item: "P&P", Message: "Move to Area 1" },
+      { Item: "P&P", Message: "Move Down" },
+      { Item: "P&P", Message: "Turn Vacuum ON" },
+      { Item: "P&P", Message: "Move Up" },
+      { Item: "P&P", Message: "Move to Area 2" },
+      { Item: "P&P", Message: "Move Down" },
+      { Item: "P&P", Message: "Turn Vacuum OFF" },
+      { Item: "P&P", Message: "Move Up" }
+    ];
+
+    let delay = 0;
+
+    commands.forEach((cmd, index) => {
+      setTimeout(() => {
+        const payload = { RPI: 20, Information: [cmd] };
+        wsMG.send(JSON.stringify(payload));
+        logMessage("📤 Sent:\n" + JSON.stringify(payload, null, 2));
+
+        if (index === commands.length - 1) {
+          Swal.fire("Success", "All MG commands sent to Raspberry Pi", "success");
+        }
+      }, delay);
+      delay += 2000;
+    });
+  };
+
+  wsMG.onmessage = (event) => {
+    logMessage("📥 MG Response:\n" + event.data);
+  };
+
+  wsMG.onerror = (error) => {
+    logMessage("❌ MG WebSocket error: " + (error.message || error));
+    Swal.fire("Error", "WebSocket error for MG", "error");
+  };
+
+  wsMG.onclose = () => {
+    logMessage(`🔌 MG WebSocket connection closed.`);
+  };
+}
+
+function connectToRpiChip() {
+  const ip = "192.168.0.20";
+  const wsChip = new WebSocket(`ws://${ip}:8080`);
+
+  wsChip.onopen = () => {
+    logMessage(`✅ Connected to RPI Chip (${ip})`);
+    Swal.fire("Connected", `Connected to Raspberry Pi Chip (${ip})`, "success");
+
+    const commands = [
+      { Item: "P&P", Message: "Move Down" },
+      { Item: "P&P", Message: "Turn Vacuum ON" },
+      { Item: "P&P", Message: "Move Up" },
+      { Item: "P&P", Message: "Move to Area 3" },
+      { Item: "P&P", Message: "Move Down" },
+      { Item: "P&P", Message: "Turn Vacuum OFF" },
+      { Item: "P&P", Message: "Move Up" }
+    ];
+
+    let delay = 0;
+
+    commands.forEach((cmd, index) => {
+      setTimeout(() => {
+        const payload = { RPI: 20, Information: [cmd] };
+        wsChip.send(JSON.stringify(payload));
+        logMessage("📤 Sent:\n" + JSON.stringify(payload, null, 2));
+
+        if (index === commands.length - 1) {
+          Swal.fire("Success", "All Chip commands sent to Raspberry Pi", "success");
+          callclamp(); // ✅ Auto-call clamp after chip
+        }
+      }, delay);
+      delay += 2000;
+    });
+  };
+
+  wsChip.onmessage = (event) => {
+    logMessage("📥 Chip Response:\n" + event.data);
+  };
+
+  wsChip.onerror = (error) => {
+    logMessage("❌ Chip WebSocket error: " + (error.message || error));
+    Swal.fire("Error", "WebSocket error for Chip", "error");
+  };
+
+  wsChip.onclose = () => {
+    logMessage(`🔌 Chip WebSocket connection closed.`);
+  };
+}
+
+function callclamp() {
+	
+  const ip = "192.168.0.10";
+  const wsClamp = new WebSocket(`ws://${ip}:8080`);
+
+  wsClamp.onopen = () => {
+    logMessage(`✅ Connected to Clamp RPI (${ip})`);
+    Swal.fire("Connected", `Connected to Clamp RPI (${ip})`, "success");
+
+    const commands = [
+      { Item: "Clamping", Message: "Clamp Open" },
+      { Item: "Carrier 2", Message: "Move In" },
+      { Item: "Carrier 2", Message: "Move Out" },
+      { Item: "Clamping", Message: "Clamp Close" },
+      { Item: "Carrier 2", Message: "Move In" }
+     
+    ];
+
+    let delay = 0;
+
+    commands.forEach((cmd, index) => {
+      setTimeout(() => {
+        const payload = { RPI: 1, Information: [cmd] };
+        wsClamp.send(JSON.stringify(payload));
+        logMessage("📤 Sent:\n" + JSON.stringify(payload, null, 2));
+
+        if (index === commands.length - 1) {
+          Swal.fire("Success", "All Clamp commands sent to Raspberry Pi", "success");
+		  electricperso();
+        }
+      }, delay);
+      delay += 2000;
+    });
+  };
+
+  wsClamp.onmessage = (event) => {
+    logMessage("📥 Clamp Response:\n" + event.data);
+  };
+
+  wsClamp.onerror = (error) => {
+    logMessage("❌ Clamp WebSocket error: " + (error.message || error));
+    Swal.fire("Error", "WebSocket error for Clamp", "error");
+  };
+
+  wsClamp.onclose = () => {
+    logMessage(`🔌 Clamp WebSocket connection closed.`);
+  };
+}
+
+
+function electricperso() {
+	
+  const ip = "192.168.0.11";
+  const wsClamp = new WebSocket(`ws://${ip}:8080`);
+
+  wsClamp.onopen = () => {
+    logMessage(`✅ Connected to Perso RPI (${ip})`);
+    Swal.fire("Connected", `Connected to Perso RPI (${ip})`, "success");
+
+    const commands = [
+      { Item: "Elec Perso Head", Message: "Move Down" }
+     
+     
+    ];
+
+    let delay = 0;
+
+    commands.forEach((cmd, index) => {
+      setTimeout(() => {
+        const payload = { RPI: 2, Information: [cmd] };
+        wsClamp.send(JSON.stringify(payload));
+        logMessage("📤 Sent:\n" + JSON.stringify(payload, null, 2));
+
+        if (index === commands.length - 1) {
+          Swal.fire("Success", "All perso commands sent to Raspberry Pi", "success");
+        }
+      }, delay);
+      delay += 2000;
+    });
+  };
+
+  wsClamp.onmessage = (event) => {
+    logMessage("📥 perso Response:\n" + event.data);
+  };
+
+  wsClamp.onerror = (error) => {
+    logMessage("❌ perso WebSocket error: " + (error.message || error));
+    Swal.fire("Error", "WebSocket error for perso", "error");
+  };
+
+  wsClamp.onclose = () => {
+    logMessage(`🔌 perso WebSocket connection closed.`);
+  };
+}
+</script>

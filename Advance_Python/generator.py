@@ -1,5 +1,6 @@
 import sys
-#Generator function use for accessing the big content from the file and perform lazy loading in the memory
+#Generator function use for accessing the big content from the file and perform lazy loading
+# in the memory
 
 
 def read_largefile(filename):

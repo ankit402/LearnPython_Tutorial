@@ -1,7 +1,6 @@
 #Define a recursive function to calculate the nth Fibonacci number using memoization. Test the function with different inputs.
 from datetime import time
 
-
 def FuncationFact(num):
     if num ==0:
         return 1

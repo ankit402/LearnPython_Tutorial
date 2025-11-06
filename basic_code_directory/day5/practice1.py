@@ -23,6 +23,7 @@ def reverse_list(lst):
         elif len(lst) > 0:
             reversed_lst.append(lst[data_len - 1])
             data_len = data_len - 1
+    print(reversed_lst)
     return reversed_lst
 
 #simplest way
@@ -30,6 +31,7 @@ def reverse_list(lst):
     reversed_lst = []
     for i in range(len(lst) - 1, -1, -1):  # loop from end to start
         reversed_lst.append(lst[i])
+    print(reversed_lst)
     return reversed_lst
 
 lst = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]

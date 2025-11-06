@@ -4,7 +4,7 @@ import numpy as np
 
 listdata = np.array([1,2,3,5])
 print(listdata)
-
+print(listdata.shape)
 print(type(listdata))
 #shape for array
 arr1= np.array([[1,4,5,6],[1,2,3,5]])

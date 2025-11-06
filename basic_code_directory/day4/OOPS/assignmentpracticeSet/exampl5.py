@@ -20,6 +20,8 @@ class Manager(Employee):
          super().__init__(name,employee_id)
          #Employee.__init__(self,name,employee_id)
 
+
+#dunder method
     def __str__(self):
         return f'{self.name} having ID {self.employee_id}'
 #Manager → Employee → Person
