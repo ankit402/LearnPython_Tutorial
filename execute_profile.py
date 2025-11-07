@@ -16,22 +16,35 @@ tbl_vars = {}
 sp_count_label = None
 tbl_count_label = None
 
+def get_available_odbc_drivers():
+    """Return a list of available ODBC drivers installed on the PC."""
+    try:
+        drivers = pyodbc.drivers()
+        # Filter SQL Server drivers only
+        drivers = [d for d in drivers if "SQL Server" in d]
+        return sorted(drivers, reverse=True) or ["ODBC Driver 17 for SQL Server"]
+    except Exception:
+        return ["ODBC Driver 17 for SQL Server"]
+
 # -------------------- DATABASE FUNCTIONS --------------------
-def connect_db(server, database, username, password):
+def connect_db(driver, server, database, username, password):
+    """Connect using selected ODBC driver."""
     conn_str = (
-        f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+        f"DRIVER={{{driver}}};"
         f"SERVER={server};"
         f"DATABASE={database};"
         f"UID={username};"
         f"PWD={password}"
     )
-    return pyodbc.connect(conn_str)
+    return pyodbc.connect(conn_str, autocommit=False)
 
-def get_all_databases(server, username, password):
+def get_all_databases(driver, server, username, password):
+    """Get database names using selected driver."""
     try:
         conn = pyodbc.connect(
-            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={server};DATABASE=master;UID={username};PWD={password}"
+            f"DRIVER={{{driver}}};"
+            f"SERVER={server};DATABASE=master;"
+            f"UID={username};PWD={password}"
         )
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM sys.databases ORDER BY name")
@@ -85,6 +98,8 @@ def browse_and_execute(sp_name):
         sql_script = "\n".join(lines)
 
         cursor = active_conn.cursor()
+        # pyodbc can execute batch scripts; if script contains GO statements this may fail.
+        # For complex scripts, a more robust batch-splitting is needed. For now try execute directly.
         cursor.execute(sql_script)
         active_conn.commit()
         cursor.close()
@@ -254,7 +269,7 @@ def backup_table(tbl_name):
         GROUP BY t.name, s.name
     """, (tbl_name,))
     row = cursor.fetchone()
-    if row and row.TableScript:
+    if row and getattr(row, "TableScript", None):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_file = os.path.join(BACKUP_DIR, f"{tbl_name}_backup_{timestamp}.sql")
         with open(backup_file, "w", encoding="utf-8") as f:
@@ -268,11 +283,17 @@ def update_checkbox_color(var, frame):
     if var.get():
         frame.config(bg="#C8E6C9")  # Light green
         for child in frame.winfo_children():
-            child.config(bg="#C8E6C9")
+            try:
+                child.config(bg="#C8E6C9")
+            except Exception:
+                pass
     else:
         frame.config(bg=root.cget("bg"))  # Default
         for child in frame.winfo_children():
-            child.config(bg=root.cget("bg"))
+            try:
+                child.config(bg=root.cget("bg"))
+            except Exception:
+                pass
 
 def get_sp_parameters(conn, sp_name):
     cursor = conn.cursor()
@@ -303,7 +324,7 @@ def open_sp_execution_window(sp_name):
     exec_win.geometry("900x550")
 
     try:
-        params = get_sp_parameters(active_conn, sp_name)
+        param_defs = get_sp_parameters(active_conn, sp_name)  # renamed to avoid collision
     except Exception as e:
         messagebox.showerror("Error", f"Unable to fetch parameters:\n{e}")
         return
@@ -312,7 +333,7 @@ def open_sp_execution_window(sp_name):
     param_frame.pack(fill=tk.X, padx=10, pady=10)
 
     entries = {}
-    for i, (name, dtype, is_output) in enumerate(params):
+    for i, (name, dtype, is_output) in enumerate(param_defs):
         direction = "OUTPUT" if is_output else "INPUT"
         tk.Label(param_frame, text=f"{name} ({dtype}, {direction})").grid(row=i, column=0, sticky="w", padx=5, pady=3)
 
@@ -343,36 +364,48 @@ def open_sp_execution_window(sp_name):
     tree.configure(yscrollcommand=scrollbar.set)
 
     def execute_sp():
+        cursor = None
         try:
             cursor = active_conn.cursor()
-            param_values = {}
-            sql_parts = []
+            param_values = []
 
-            # Build parameter string and values dict
+            # Build parameter values list
             for name, (widget, dtype, is_output) in entries.items():
-                val = widget.get().strip()
-                if val == "":
+                val = None
+                try:
+                    raw = widget.get().strip()
+                except Exception:
+                    raw = ""
+                if raw == "":
                     val = None
                 else:
                     try:
                         if dtype in ("int", "smallint", "tinyint", "bigint"):
-                            val = int(val)
+                            val = int(raw)
                         elif dtype in ("decimal", "numeric", "float", "money", "real"):
-                            val = float(val)
+                            val = float(raw)
                         elif "bit" in dtype:
-                            val = 1 if val in ["1", "true", "True"] else 0
+                            val = 1 if raw in ("1", "true", "True", "TRUE") else 0
                         elif "date" in dtype:
-                            val = datetime.strptime(val, "%Y-%m-%d")
-                    except:
-                        pass
-                params.append(val)
+                            # DateEntry returns yyyy-mm-dd
+                            val = datetime.strptime(raw, "%Y-%m-%d")
+                        else:
+                            val = raw
+                    except Exception:
+                        val = raw
 
-                # Use ODBC CALL syntax instead of EXEC
-                placeholder_str = ", ".join(["?"] * len(params))
-                sql = f"{{CALL {sp_name} ({placeholder_str})}}" if params else f"{{CALL {sp_name}}}"
+                # For OUTPUT params we currently pass None placeholder (capturing outputs requires different handling)
+                param_values.append(val)
 
-                print("Executing:", sql)
-                cursor.execute(sql, tuple(params))
+            # Use ODBC CALL syntax
+            placeholder_str = ", ".join(["?"] * len(param_values))
+            if placeholder_str:
+                sql = f"{{CALL {sp_name} ({placeholder_str})}}"
+            else:
+                sql = f"{{CALL {sp_name}}}"
+
+            print("Executing:", sql, "with", param_values)
+            cursor.execute(sql, tuple(param_values))
 
             # Try to display resultset
             try:
@@ -400,10 +433,11 @@ def open_sp_execution_window(sp_name):
             except Exception:
                 messagebox.showinfo("Execution Complete", "Stored procedure executed successfully (no result set).")
 
-            cursor.close()
-
         except Exception as e:
             messagebox.showerror("Execution Error", f"Error executing stored procedure:\n{e}")
+        finally:
+            if cursor:
+                cursor.close()
 
     tk.Button(exec_win, text="Execute", command=execute_sp, bg="#4CAF50", fg="white", width=15).pack(pady=8)
 
@@ -457,47 +491,163 @@ def refresh_tbl_checkboxes():
     except Exception as e:
         messagebox.showerror("Error", f"Unable to load Tables:\n{e}")
     update_tbl_count()
+#Progress Bar UI
+from tkinter import ttk
+
+def refresh_sp_checkboxes():
+    for widget in inner_frame_sp.winfo_children():
+        widget.destroy()
+    sp_vars.clear()
+    global sp_count_label
+    sp_count_label = tk.Label(inner_frame_sp, text="Selected: 0", fg="blue", font=("Arial", 10, "bold"))
+    sp_count_label.pack(anchor="w", pady=(0,5))
+
+    # Progress bar frame
+    progress_frame = tk.Frame(inner_frame_sp)
+    progress_frame.pack(fill="x", pady=5)
+    tk.Label(progress_frame, text="Loading Stored Procedures...", fg="gray").pack(anchor="w")
+    progress = ttk.Progressbar(progress_frame, mode="determinate")
+    progress.pack(fill="x", padx=5, pady=2)
+
+    root.update_idletasks()
+
+    try:
+        sp_list = get_all_stored_procedures(active_conn)
+        total = len(sp_list)
+        if total == 0:
+            tk.Label(inner_frame_sp, text="No stored procedures found.", fg="red").pack(anchor="w", pady=5)
+            progress_frame.destroy()
+            return
+
+        progress["maximum"] = total
+
+        for i, sp in enumerate(sp_list, 1):
+            var = tk.BooleanVar()
+            frame_row = tk.Frame(inner_frame_sp)
+            frame_row.pack(fill="x", anchor="w", pady=1)
+            chk = tk.Checkbutton(frame_row, text=sp, variable=var,
+                                 command=lambda v=var, f=frame_row: [update_sp_count(), update_checkbox_color(v, f)])
+            chk.pack(side=tk.LEFT, anchor="w")
+            btn = tk.Button(frame_row, text="Browse & Execute", command=lambda s=sp: browse_and_execute(s),
+                            bg="#00BCD4", fg="white")
+            btn.pack(side=tk.RIGHT, padx=5)
+            sp_vars[sp] = var
+
+            # Update progress bar
+            progress["value"] = i
+            root.update_idletasks()
+
+        progress_frame.destroy()
+    except Exception as e:
+        progress_frame.destroy()
+        messagebox.showerror("Error", f"Unable to load SPs:\n{e}")
+
+    update_sp_count()
+
+
+def refresh_tbl_checkboxes():
+    for widget in inner_frame_tbl.winfo_children():
+        widget.destroy()
+    tbl_vars.clear()
+    global tbl_count_label
+    tbl_count_label = tk.Label(inner_frame_tbl, text="Selected: 0", fg="blue", font=("Arial", 10, "bold"))
+    tbl_count_label.pack(anchor="w", pady=(0,5))
+
+    # Progress bar frame
+    progress_frame = tk.Frame(inner_frame_tbl)
+    progress_frame.pack(fill="x", pady=5)
+    tk.Label(progress_frame, text="Loading Tables...", fg="gray").pack(anchor="w")
+    progress = ttk.Progressbar(progress_frame, mode="determinate")
+    progress.pack(fill="x", padx=5, pady=2)
+
+    root.update_idletasks()
+
+    try:
+        tbl_list = get_all_tables(active_conn)
+        total = len(tbl_list)
+        if total == 0:
+            tk.Label(inner_frame_tbl, text="No tables found.", fg="red").pack(anchor="w", pady=5)
+            progress_frame.destroy()
+            return
+
+        progress["maximum"] = total
+
+        for i, tbl in enumerate(tbl_list, 1):
+            var = tk.BooleanVar()
+            frame_row = tk.Frame(inner_frame_tbl)
+            frame_row.pack(fill="x", anchor="w", pady=1)
+            chk = tk.Checkbutton(frame_row, text=tbl, variable=var,
+                                 command=lambda v=var, f=frame_row: [update_tbl_count(), update_checkbox_color(v, f)])
+            chk.pack(side=tk.LEFT, anchor="w")
+            btn = tk.Button(frame_row, text="Browse & Execute", command=lambda t=tbl: browse_and_execute_table(t),
+                            bg="#00BCD4", fg="white")
+            btn.pack(side=tk.RIGHT, padx=5)
+            tbl_vars[tbl] = var
+
+            # Update progress bar
+            progress["value"] = i
+            root.update_idletasks()
+
+        progress_frame.destroy()
+    except Exception as e:
+        progress_frame.destroy()
+        messagebox.showerror("Error", f"Unable to load Tables:\n{e}")
+
+    update_tbl_count()
 
 # -------------------- GUI SETUP --------------------
 root = tk.Tk()
 root.title("SQL SP & Tables Exporter with Backup")
-root.geometry("14400x800")
+root.geometry("1440x800")  # fixed typo from 14400
 
 # Connection Frame
 frame_conn = tk.LabelFrame(root, text="Database Connection", padx=10, pady=10)
 frame_conn.pack(fill=tk.X, padx=20, pady=5)
 
-tk.Label(frame_conn, text="Server:").grid(row=0, column=0)
+# ODBC Driver dropdown
+tk.Label(frame_conn, text="ODBC Driver:").grid(row=0, column=0, sticky="w")
+combo_driver = ttk.Combobox(frame_conn, width=30, state="readonly")
+combo_driver['values'] = get_available_odbc_drivers()
+try:
+    combo_driver.current(0)
+except Exception:
+    pass
+combo_driver.grid(row=0, column=1, padx=5)
+
+tk.Label(frame_conn, text="Server:").grid(row=0, column=2)
 entry_server = tk.Entry(frame_conn, width=25)
-entry_server.grid(row=0, column=1)
-tk.Label(frame_conn, text="Username:").grid(row=0, column=2)
+entry_server.grid(row=0, column=3)
+tk.Label(frame_conn, text="Username:").grid(row=0, column=4)
 entry_user = tk.Entry(frame_conn, width=20)
-entry_user.grid(row=0, column=3)
-tk.Label(frame_conn, text="Password:").grid(row=0, column=4)
+entry_user.grid(row=0, column=5)
+tk.Label(frame_conn, text="Password:").grid(row=0, column=6)
 entry_pass = tk.Entry(frame_conn, width=20, show="*")
-entry_pass.grid(row=0, column=5)
-tk.Button(frame_conn, text="Load DBs", command=lambda: combo_db.configure(values=get_all_databases(entry_server.get(), entry_user.get(), entry_pass.get())), bg="#2196F3", fg="white").grid(row=0, column=6, padx=5)
+entry_pass.grid(row=0, column=7)
+
+# Fix: pass driver argument to get_all_databases
+tk.Button(frame_conn, text="Load DBs", command=lambda: combo_db.configure(values=get_all_databases(combo_driver.get().strip() or combo_driver['values'][0], entry_server.get(), entry_user.get(), entry_pass.get())), bg="#2196F3", fg="white").grid(row=0, column=8, padx=5)
+
 combo_db = ttk.Combobox(frame_conn, width=25, state="readonly")
-combo_db.grid(row=1, column=1)
-tk.Button(frame_conn, text="Connect", command=lambda: connect_and_refresh(), bg="#4CAF50", fg="white").grid(row=1, column=2)
+combo_db.grid(row=1, column=3)
+tk.Button(frame_conn, text="Connect", command=lambda: connect_and_refresh(), bg="#4CAF50", fg="white").grid(row=1, column=4)
 
 def connect_and_refresh():
     global active_conn
+    driver = combo_driver.get().strip() or (combo_driver['values'][0] if combo_driver['values'] else "")
     server = entry_server.get().strip()
     database = combo_db.get().strip()
     username = entry_user.get().strip()
     password = entry_pass.get().strip()
-    if not all([server, database, username, password]):
+    if not all([driver, server, database, username, password]):
         messagebox.showwarning("Missing Info", "Please fill all connection details.")
         return
     try:
-        active_conn = connect_db(server, database, username, password)
+        active_conn = connect_db(driver, server, database, username, password)
         refresh_sp_checkboxes()
         refresh_tbl_checkboxes()
+        messagebox.showinfo("Connected", f"Connected successfully using {driver}")
     except Exception as e:
         messagebox.showerror("Connection Error", f"Unable to connect:\n{e}")
-
-# sp open part
 
 # table part
 def open_table_update_window(table_name):
@@ -580,8 +730,6 @@ def open_table_update_window(table_name):
 
     tree.bind("<Double-1>", on_double_click)
 
-#sp modify
-
 # Main Frame
 frame_main = tk.Frame(root)
 frame_main.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
@@ -619,7 +767,6 @@ tk.Button(frame_buttons, text="Refresh Lists", command=lambda: [refresh_sp_check
 tk.Button(frame_buttons, text="Open Selected Table(s)", command=lambda: [open_table_update_window(tbl) for tbl, var in tbl_vars.items() if var.get()], bg="#03A9F4", fg="white").pack(side=tk.LEFT, padx=5)
 tk.Button(
     frame_buttons,
-    #state="disabled"
     text="Open SP for Modify/Execute",
     command=lambda: [open_sp_modify_window(sp) for sp, var in sp_vars.items() if var.get()],
     bg="#795548",
@@ -627,4 +774,3 @@ tk.Button(
 ).pack(side=tk.LEFT, padx=5)
 
 root.mainloop()
-## pyinstaller --onefile --windowed  execute_profile.py
