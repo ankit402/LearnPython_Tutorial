@@ -1,0 +1,12 @@
+<!doctype html>
+<html>
+  <body>
+    <h1>All Students</h1>
+    <a href="{{ url_for('new') }}">Add New Student</a>
+    <ul>
+      {% for student in students %}
+        <li>{{ student.name }} ({{ student.city }}) - {{ student.addr }} - {{ student.pin }}</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>

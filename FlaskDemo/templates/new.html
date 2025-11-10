@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <body>
+    <h1>Add New Student</h1>
+
+    <!-- ✅ Display flashed messages -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post">
+      Name: <input type="text" name="name"><br>
+      City: <input type="text" name="city"><br>
+      Address: <input type="text" name="addr"><br>
+      PIN: <input type="text" name="pin"><br>
+      <input type="submit" value="Add">
+    </form>
+    <a href="{{ url_for('show_all') }}">Back to List</a>
+  </body>
+</html>
