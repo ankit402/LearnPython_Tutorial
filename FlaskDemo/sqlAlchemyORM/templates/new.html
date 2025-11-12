@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Student</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+        background-color: #f4f4f4;
+      }
+      h1 {
+        color: #333;
+      }
+      form {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        width: 300px;
+      }
+      input[type="text"], select {
+        width: 100%;
+        padding: 8px;
+        margin: 5px 0 15px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      input[type="submit"] {
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      input[type="submit"]:hover {
+        background-color: #0056b3;
+      }
+      .flashes {
+        list-style: none;
+        padding: 0;
+        color: red;
+      }
+      a {
+        display: inline-block;
+        margin-top: 10px;
+        text-decoration: none;
+        color: #007BFF;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Add New Student</h1>
+
+    <!-- ✅ Display flashed messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <!-- ✅ Student Form -->
+    <form method="POST">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" placeholder="Enter student name" required>
+
+      <label for="age">Age:</label>
+      <input type="text" id="age" name="age" placeholder="Enter student age" required>
+
+      <label for="gender">Gender:</label>
+
+      <select name="gender">
+        <option value="" disabled selected>Select Option</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+      </select>
+<!--      <label for="DOB">Date of Birth</label>-->
+<!--      <input type="date" value="datetime" placeholder="Enter dob" required>-->
+
+      <input type="submit" value="Add Student">
+    </form>
+
+    <a href="{{ url_for('show_all') }}">← Back to Student List</a>
+  </body>
+</html>

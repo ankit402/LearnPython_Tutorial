@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sijax Example</title>
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ g.sijax.get_js() }}"></script>
+</head>
+<body>
+    <h1>Flask-Sijax Demo</h1>
+    <button onclick="Sijax.request('say_hi');">Say Hi</button>
+</body>
+</html>
