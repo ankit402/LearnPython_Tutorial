@@ -72,13 +72,14 @@
     <!-- ✅ Student Form -->
     <form method="POST">
       <label for="name">Name:</label>
-      <input type="text" id="name" name="name" placeholder="Enter student name" required>
+      <input type="text" id="name" name="name" value="{{ student.name }}" placeholder="Enter student name" required>
+
 
       <label for="age">Age:</label>
-      <input type="text" id="age" name="age" placeholder="Enter student age" required>
+      <input type="text" id="age" value="{{ student.age }}" placeholder="Enter student age" required>
 
       <label for="gender">Gender:</label>
-      <input type="text" id="gender" name="gender" placeholder="Enter student gender" required>
+      <input type="text" id="gender" value="{{ student.gender }}" placeholder="Enter student gender" required>
 
       <input type="submit" value="Add Student">
     </form>

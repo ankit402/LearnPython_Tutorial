@@ -2,11 +2,24 @@
 <html>
 <head>
     <title>Sijax Example</title>
-    <script src="{{ url_for('static', filename='js/sijax/sijax.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/sijax/json.js') }}"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ g.sijax.get_js() }}"></script>
+
+    <script type="text/javascript">
+        Sijax.setRequestUri("{{ url_for('hello') }}");
+        Sijax.setJsonUri("{{ url_for('static', filename='js/sijax/json2.js') }}");
+    </script>
 </head>
 <body>
-    <h1>Flask-Sijax Example</h1>
-    <button onclick="Sijax.request('say_hi');">Say Hi!</button>
+    <h1>Flask-Sijax Demo</h1>
+    <button id="sayhi-btn">Say Hi</button>
+
+    <script>
+    $(function() {
+        $('#sayhi-btn').click(function() {
+            Sijax.request('say_hi');
+        });
+    });
+    </script>
 </body>
 </html>

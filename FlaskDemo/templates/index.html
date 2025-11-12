@@ -1,9 +1,20 @@
+<!--<html>-->
+<!--   <body>-->
+<!--      <form action="/setcookie" method="POST">-->
+<!--         <h3>Enter userID</h3>-->
+<!--         <input type="text" name="nm"/>-->
+<!--         <input type="submit" value="Login"/>-->
+<!--      </form>-->
+<!--   </body>-->
+<!--</html>-->
+<!doctype html>
 <html>
-   <body>
-      <form action="/setcookie" method="POST">
-         <h3>Enter userID</h3>
-         <input type="text" name="nm"/>
-         <input type="submit" value="Login"/>
-      </form>
-   </body>
+<head>
+    <script src="{{ url_for('static', filename='js/sijax/sijax.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sijax/json2.js') }}"></script>
+    {{ g.sijax.js()|safe }}
+</head>
+<body>
+    <button onclick="Sijax.request('say_hello');">Say Hello</button>
+</body>
 </html>
