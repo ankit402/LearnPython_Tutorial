@@ -94,7 +94,6 @@ print(GetComparison(10,20))
 print(GetComparison(20,20))
 print(GetComparison(120,20))
 
-
 #Question Write a Python program to demonstrate logical operators: and, or, not.
 x = True
 y = False
@@ -105,7 +104,6 @@ def myfunction(x,y):
         return False
 
 print(myfunction(x,y))
-
 
 #Write a Python program to calculate the square of a number.
 

@@ -10,7 +10,7 @@ data2 = {'a':1 , 'b':2 , 'c':3 , 'd':4 , 'e':5 }
 series = pd.Series(data2)
 print(series)
 
-#dataframe
+#dataframe --> 2D Dimenstional
 dataf= {
     'Name': ['Krish', 'Ankit', 'TEST'],
     'Age': [12,23,34],
@@ -20,6 +20,8 @@ df = pd.DataFrame(dataf)
 print(df)
 print(type(df))
 
-data2 = [{'Name' : 'X', 'Age' : 23},{'Name' : 'Y', 'Age' : 34}, {'Name' : 'Z', 'Age' : 45}]
+data2 = [{'Name' : 'X', 'Age' : 23},
+         {'Name' : 'Y', 'Age' : 34},
+         {'Name' : 'Z', 'Age' : 45}]
 df = pd.DataFrame(data2)
 print(df)
