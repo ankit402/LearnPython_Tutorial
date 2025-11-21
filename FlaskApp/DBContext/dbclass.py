@@ -1,13 +1,15 @@
 from flask import Blueprint
 from flask_sqlalchemy import SQLAlchemy
-
+from sqlalchemy import text
 # Create db instance
 db = SQLAlchemy()
 # Create blueprint
 mydb_bp = Blueprint('mydb', __name__)
 
+
 # Example model
 class User(db.Model):
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
@@ -15,14 +17,18 @@ class User(db.Model):
     gender = db.Column(db.String(20))
     phone = db.Column(db.String(20))
     email = db.Column(db.String(100))
+    #modify the business logic
+    address = db.Column(db.String(200), nullable=False)
 
-    def __init__(self, username, password, age, gender, phone, email):
+
+    def __init__(self, username, password, age, gender, phone, email, address):
         self.username = username
         self.password = password
         self.age = age
         self.gender = gender
         self.phone = phone
         self.email = email
+        self.address = address
 
 class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -50,3 +56,10 @@ class Role(db.Model):
     def __init__(self, Rolename,RoleDescription):
         self.rolename = Rolename
         self.RoleDescription = RoleDescription
+
+def add_column():
+    with db.engine.connect() as conn:
+        conn.execute(
+            text("ALTER TABLE User COLUMN ADD COLUMN address TEXT")
+        )
+        print("Column renamed successfully!")

@@ -62,6 +62,7 @@ def register():
         gender = request.form['gender']
         phone = request.form['phone']
         email = request.form['email']
+        address = request.form['address']
     #userdata = User(username, hashed_password, age='', gender='', phone='', email='')
 
         # Check if username already exists
@@ -72,7 +73,7 @@ def register():
         # Hash the password before saving
         hashed_password = generate_password_hash(password)
         # Add new user to DB
-        new_user = User(username=username, password=hashed_password, age = age, gender=gender, phone=phone, email=email)
+        new_user = User(username=username, password=hashed_password, age = age, gender=gender, phone=phone, email=email,address=address)
         db.session.add(new_user)
         db.session.commit()
         flash("User registered successfully!", "success")
@@ -185,6 +186,11 @@ def AddGroup(username):
 
     # GET request → show page
     return render_template('AddGroup.html', username=username)
+
+@myroute_bp.route('/GroupManagement', methods=['GET', 'POST'])
+def GroupManagement():
+    groups = Group.query.all()
+    return render_template('AddGroup.html', groups=groups)
 
 @myroute_bp.route('/editgroup/<int:id>', methods=['GET', 'POST'])
 def editgroup(id):

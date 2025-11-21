@@ -4,7 +4,7 @@ from DBContext.dbclass import mydb_bp, db, User  # import blueprint AND db insta
 
 #constructor init the app
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///userdata2.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///userdata.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = "AAAAAAAAAAAAAAAAAAAAAAAAABBBBBBB"
 
